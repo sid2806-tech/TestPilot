@@ -1,10 +1,17 @@
-// Reusable UI components
+// Reusable UI components — Hamza Desk Theme
 import React from 'react';
+
+// ── Pink Diamond Marker (Hamza Signature) ───────────────────────────────────
+export function PinkDiamond({ className = '' }: { className?: string }) {
+  return (
+    <span className={`inline-block w-2 h-2 bg-rose-400 rotate-45 shadow-[0_0_10px_#ff70a6] ${className}`} />
+  );
+}
 
 // ── Status Badge ────────────────────────────────────────────────────────────
 export function StatusBadge({ status }: { status: string }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-mono font-medium status-${status}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium status-${status}`}>
       <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
       {status.toUpperCase()}
     </span>
@@ -15,7 +22,42 @@ export function StatusBadge({ status }: { status: string }) {
 export function Spinner({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   const s = { sm: 'w-4 h-4', md: 'w-6 h-6', lg: 'w-8 h-8' }[size];
   return (
-    <div className={`${s} border-2 border-cyan-500 border-t-transparent rounded-full animate-spin`} />
+    <div className={`${s} border-2 border-rose-500 border-t-transparent rounded-full animate-spin`} />
+  );
+}
+
+// ── Window Card (Hamza Desktop Style with Chrome) ───────────────────────────
+export function WindowCard({
+  title = 'terminal',
+  path = '',
+  children,
+  className = '',
+  action,
+}: {
+  title?: string;
+  path?: string;
+  children: React.ReactNode;
+  className?: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className={`card ${className}`}>
+      <div className="win-chrome">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-slate-200">{title}</span>
+          {path && <span className="text-slate-500">· {path}</span>}
+        </div>
+        <div className="flex items-center gap-3">
+          {action}
+          <div className="win-dots">
+            <i className="bg-slate-700/60" />
+            <i className="bg-slate-700/60" />
+            <i className="bg-slate-700/60" />
+          </div>
+        </div>
+      </div>
+      <div className="p-4 sm:p-6">{children}</div>
+    </div>
   );
 }
 
@@ -32,12 +74,12 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-      <div className="w-14 h-14 rounded-xl bg-navy-800 border border-navy-600/60 flex items-center justify-center mb-4">
-        <Icon size={24} className="text-slate-500" />
+    <div className="flex flex-col items-center justify-center py-16 px-6 text-center card border-dashed border-white/10">
+      <div className="w-12 h-12 rounded-xl bg-navy-800 border border-white/10 flex items-center justify-center mb-4 text-rose-400">
+        <Icon size={22} />
       </div>
       <h3 className="text-base font-semibold text-white mb-2">{title}</h3>
-      <p className="text-sm text-slate-500 max-w-sm mb-6">{description}</p>
+      <p className="text-xs sm:text-sm text-slate-400 max-w-sm mb-6 leading-relaxed">{description}</p>
       {action}
     </div>
   );
@@ -56,10 +98,13 @@ export function MetricCard({
   accent?: boolean;
 }) {
   return (
-    <div className={`card p-4 ${accent ? 'border-cyan-500/30 glow-cyan-sm' : ''}`}>
-      <div className="telemetry-label mb-2">{label}</div>
-      <div className={`text-2xl font-bold ${accent ? 'text-cyan-400' : 'text-white'}`}>{value}</div>
-      {sub && <div className="text-xs text-slate-500 mt-1">{sub}</div>}
+    <div className={`card p-4 sm:p-5 transition-all duration-200 ${accent ? 'border-rose-400/40 shadow-neon-rose' : 'hover:border-white/20'}`}>
+      <div className="flex items-center justify-between mb-2">
+        <div className="telemetry-label">{label}</div>
+        {accent && <PinkDiamond />}
+      </div>
+      <div className={`text-2xl sm:text-3xl font-bold font-display ${accent ? 'text-rose-400' : 'text-white'}`}>{value}</div>
+      {sub && <div className="text-xs text-slate-400 mt-1 font-mono">{sub}</div>}
     </div>
   );
 }
@@ -68,19 +113,27 @@ export function MetricCard({
 export function SectionHeader({
   title,
   subtitle,
+  kicker,
   action,
 }: {
   title: string;
   subtitle?: string;
+  kicker?: string;
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-start justify-between mb-6">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
       <div>
-        <h1 className="text-xl font-semibold text-white">{title}</h1>
-        {subtitle && <p className="text-sm text-slate-500 mt-1">{subtitle}</p>}
+        {kicker && (
+          <div className="telemetry-label mb-1">
+            <PinkDiamond />
+            <span>{kicker}</span>
+          </div>
+        )}
+        <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight font-display">{title}</h1>
+        {subtitle && <p className="text-xs sm:text-sm text-slate-400 mt-1">{subtitle}</p>}
       </div>
-      {action && <div>{action}</div>}
+      {action && <div className="flex-shrink-0">{action}</div>}
     </div>
   );
 }
@@ -89,19 +142,25 @@ export function SectionHeader({
 export function Alert({
   type,
   message,
+  action,
 }: {
   type: 'error' | 'success' | 'warning' | 'info';
   message: string;
+  action?: React.ReactNode;
 }) {
   const styles = {
-    error: 'bg-red-900/20 border-red-700/40 text-red-400',
-    success: 'bg-emerald-900/20 border-emerald-700/40 text-emerald-400',
-    warning: 'bg-amber-900/20 border-amber-700/40 text-amber-400',
-    info: 'bg-blue-900/20 border-blue-700/40 text-blue-400',
+    error: 'bg-rose-950/40 border-rose-500/40 text-rose-300',
+    success: 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300',
+    warning: 'bg-amber-950/40 border-amber-500/40 text-amber-300',
+    info: 'bg-blue-950/40 border-blue-500/40 text-blue-300',
   };
   return (
-    <div className={`border rounded-md px-4 py-3 text-sm ${styles[type]}`}>
-      {message}
+    <div className={`border rounded-lg px-4 py-3 text-xs sm:text-sm flex items-center justify-between gap-3 ${styles[type]}`}>
+      <div className="flex items-center gap-2">
+        <span className="w-1.5 h-1.5 rounded-full bg-current" />
+        <span>{message}</span>
+      </div>
+      {action && <div>{action}</div>}
     </div>
   );
 }

@@ -7,45 +7,53 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Mission control palette
+        // Hamza Desk Room Palette (https://www.raomuhammadhamza.tech/)
         navy: {
-          950: '#03060f',
-          900: '#050d1a',
-          800: '#081426',
-          700: '#0d1f3c',
-          600: '#122952',
+          950: '#090c15',
+          900: '#0f1220', // Hamza's theme-color
+          850: '#131728',
+          800: '#181d33',
+          700: '#222845',
+          600: '#323a61',
+        },
+        rose: {
+          400: '#ff70a6', // Hamza neon pink
+          500: '#f43f5e',
+          300: '#ffa1c5',
+          200: '#ffd1e3',
+          900: '#2b1422',
         },
         cyan: {
-          400: '#22d3ee',
-          500: '#06b6d4',
+          400: '#38bdf8',
+          500: '#0284c7',
         },
-        electric: '#38bdf8',
-        grid: 'rgba(56,189,248,0.06)',
+        amber: {
+          glow: '#fb923c',
+        },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Space Grotesk', 'Inter', 'system-ui', 'sans-serif'],
+        display: ['Space Grotesk', 'sans-serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
-      backgroundImage: {
-        'grid-pattern': `linear-gradient(rgba(56,189,248,0.04) 1px, transparent 1px),
-                         linear-gradient(90deg, rgba(56,189,248,0.04) 1px, transparent 1px)`,
-      },
-      backgroundSize: {
-        'grid': '40px 40px',
+      boxShadow: {
+        'neon-rose': '0 0 20px rgba(255, 112, 166, 0.25), 0 0 40px rgba(255, 112, 166, 0.1)',
+        'desk-rim': '0 0 0 1px rgba(255, 112, 166, 0.25), 0 8px 32px rgba(0, 0, 0, 0.7)',
+        'dock': '0 12px 35px -4px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.08)',
       },
       animation: {
         'pulse-slow': 'pulse 4s cubic-bezier(0.4,0,0.6,1) infinite',
-        'scan': 'scan 3s linear infinite',
-        'fade-in': 'fadeIn 0.6s ease-out forwards',
+        'fade-in': 'fadeIn 0.4s ease-out forwards',
+        'float': 'float 3s ease-in-out infinite',
       },
       keyframes: {
-        scan: {
-          '0%': { transform: 'translateY(-100%)' },
-          '100%': { transform: 'translateY(100vh)' },
-        },
         fadeIn: {
-          '0%': { opacity: '0', transform: 'translateY(12px)' },
+          '0%': { opacity: '0', transform: 'translateY(8px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-4px)' },
         },
       },
     },

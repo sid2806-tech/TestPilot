@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { demoApi } from '@/lib/api';
-import { SectionHeader, Alert } from '@/components/ui';
-import { User, Shield, Zap, RefreshCw } from 'lucide-react';
+import { SectionHeader, Alert, PinkDiamond, WindowCard } from '@/components/ui';
+import { User, Shield, Zap, RefreshCw, KeyRound, LogOut } from 'lucide-react';
 
 export default function Settings() {
   const { user, logout } = useAuth();
@@ -25,33 +25,54 @@ export default function Settings() {
     setBugToggling(false);
   };
 
+  const isGoogle = user?.providerData?.some(p => p.providerId === 'google.com');
+
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6">
-      <SectionHeader title="Settings" subtitle="Account and platform configuration" />
+    <div className="p-4 sm:p-8 max-w-4xl mx-auto space-y-6">
+      <SectionHeader
+        kicker="07 PLATFORM // IDENTITY & TELEMETRY"
+        title="Settings & Config"
+        subtitle="Account profile, active authentication provider, and sandbox controls"
+      />
 
       {success && <Alert type="success" message={success} />}
 
-      {/* Account */}
-      <div className="card p-6">
-        <div className="flex items-center gap-3 mb-5">
-          <User size={16} className="text-cyan-400" />
-          <h2 className="text-sm font-semibold text-white">Account</h2>
+      {/* Account Profile */}
+      <WindowCard title="identity · active_session" path={user?.email || 'user'}>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-5 pb-6 border-b border-white/5 mb-6">
+          {user?.photoURL ? (
+            <img
+              src={user.photoURL}
+              alt={user.displayName || 'Avatar'}
+              className="w-16 h-16 rounded-full border-2 border-rose-400 shadow-neon-rose object-cover"
+            />
+          ) : (
+            <div className="w-16 h-16 rounded-full bg-rose-500/20 border-2 border-rose-400/40 flex items-center justify-center text-xl text-rose-300 font-bold font-mono">
+              {user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
+            </div>
+          )}
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-bold text-white font-display">{user?.displayName || 'Active Pilot'}</h3>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                {isGoogle ? 'GOOGLE ACCOUNT' : 'EMAIL ACCOUNT'}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 font-mono mt-0.5">{user?.email}</p>
+          </div>
         </div>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-500">Display Name</span>
-            <span className="text-white">{user?.displayName || '—'}</span>
+
+        <div className="space-y-3.5 text-xs font-mono">
+          <div className="flex items-center justify-between py-1">
+            <span className="text-slate-500 uppercase">Provider ID</span>
+            <span className="text-slate-300">{isGoogle ? 'google.com (Firebase OAuth)' : 'password (Firebase Auth)'}</span>
           </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-500">Email</span>
-            <span className="text-white font-mono">{user?.email}</span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-500">User ID</span>
-            <span className="text-slate-600 font-mono text-xs">{user?.uid}</span>
+          <div className="flex items-center justify-between py-1">
+            <span className="text-slate-500 uppercase">User UID</span>
+            <span className="text-slate-400 truncate max-w-[200px] sm:max-w-none">{user?.uid}</span>
           </div>
         </div>
-      </div>
+      </WindowCard>
 
       {/* Security */}
       <div className="card p-6">

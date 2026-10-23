@@ -4,7 +4,17 @@ __pycache__/
 *.py[cod]
 *$py.class
 venv/
+.venv/
+
+# Environment and Secrets
 .env
+.env.*
+*.env
+*.env.*
+*serviceAccount*.json
+*.pem
+*.key
+local_store.json
 
 # Build outputs
 dist/
@@ -19,3 +29,4 @@ screenshots/
 .idea/
 .DS_Store
 Thumbs.db
+

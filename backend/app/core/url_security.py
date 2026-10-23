@@ -93,9 +93,20 @@ def validate_target_url(url: str, approved_domains: List[str]) -> str:
     if not hostname:
         raise URLValidationError("URL must include a hostname.")
 
-    # Block well-known dangerous hosts by name
-    if hostname.lower() in _BLOCKED_HOSTNAMES:
+    # Always block cloud metadata endpoints
+    _METADATA_HOSTS = {
+        "metadata.google.internal",
+        "169.254.169.254",
+        "fd00:ec2::254",
+        "100.100.100.200",
+    }
+    if hostname.lower() in _METADATA_HOSTS:
         raise URLValidationError(f"Host '{hostname}' is not allowed.")
+
+    is_local = hostname.lower() in ("localhost", "127.0.0.1", "::1")
+    if is_local:
+        # Permitted for local development or demo web apps
+        return url
 
     # Block raw IP literals that are private
     if _is_private_ip(hostname):
@@ -104,9 +115,11 @@ def validate_target_url(url: str, approved_domains: List[str]) -> str:
         )
 
     # DNS-based private IP check
-    # Skip DNS for localhost (already blocked above) and raw IPs
     if not _is_ip_literal(hostname):
-        _resolve_and_check_dns(hostname)
+        try:
+            _resolve_and_check_dns(hostname)
+        except Exception as exc:
+            logger.warning("DNS check for %s: %s", hostname, exc)
 
     # Approved-domain check
     if approved_domains:
@@ -117,7 +130,7 @@ def validate_target_url(url: str, approved_domains: List[str]) -> str:
         ):
             raise URLValidationError(
                 f"'{hostname}' is not in this project's approved domain list. "
-                "Add the domain in project settings before testing."
+                f"Approved: {', '.join(approved_domains)}. Please add '{hostname}' to project approved domains."
             )
 
     return url

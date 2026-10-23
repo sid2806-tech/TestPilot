@@ -2,13 +2,14 @@
 Application configuration — loaded from environment variables.
 """
 
-from typing import List
+from typing import List, Union, Any
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=("../.env", ".env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
@@ -20,10 +21,26 @@ class Settings(BaseSettings):
     app_version: str = "1.0.0"
 
     # ── CORS ──────────────────────────────────────────────────────────────────
-    allowed_origins: List[str] = [
+    allowed_origins: Union[List[str], str] = [
         "http://localhost:5173",
         "http://localhost:3000",
     ]
+
+    @field_validator("allowed_origins", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v: Any) -> List[str]:
+        if isinstance(v, str):
+            if v.startswith("[") and v.endswith("]"):
+                import json
+                try:
+                    return json.loads(v)
+                except Exception:
+                    pass
+            return [i.strip() for i in v.split(",") if i.strip()]
+        elif isinstance(v, list):
+            return v
+        return ["http://localhost:5173", "http://localhost:3000"]
+
 
     # ── Google Gemini ──────────────────────────────────────────────────────────
     gemini_api_key: str = ""
