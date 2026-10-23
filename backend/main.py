@@ -7,10 +7,11 @@ import logging
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
 from app.core.firebase import initialize_firebase
@@ -77,6 +78,33 @@ app.include_router(api_router, prefix="/api/v1")
 @app.get("/health")
 async def health():
     return {"status": "ok", "service": "testpilot-ai"}
+
+
+# ── SPA Frontend (Unified Deployment on Render / Docker) ──────────────────────
+_frontend_dist = None
+for _cand in [
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "dist")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "frontend", "dist")),
+]:
+    if os.path.exists(_cand) and os.path.isfile(os.path.join(_cand, "index.html")):
+        _frontend_dist = _cand
+        break
+
+if _frontend_dist:
+    logger.info("Serving frontend SPA build from %s", _frontend_dist)
+    _assets_path = os.path.join(_frontend_dist, "assets")
+    if os.path.exists(_assets_path):
+        app.mount("/assets", StaticFiles(directory=_assets_path), name="frontend_assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa_frontend(full_path: str):
+        if full_path.startswith("api/") or full_path.startswith("health") or full_path == "api":
+            raise HTTPException(status_code=404, detail="API route not found")
+        target_file = os.path.join(_frontend_dist, full_path)
+        if os.path.isfile(target_file):
+            return FileResponse(target_file)
+        return FileResponse(os.path.join(_frontend_dist, "index.html"))
 
 
 # ── Global error handler ──────────────────────────────────────────────────────
