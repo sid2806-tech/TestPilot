@@ -38,7 +38,42 @@ def _ms(start: float) -> int:
     return int((time.perf_counter() - start) * 1000)
 
 
-# ── Action dispatcher ──────────────────────────────────────────────────────────
+async def _locate_element(page: Page, target: str, timeout: int = 5000):
+    """Self-healing element locator that falls back gracefully across roles and labels."""
+    if not target:
+        return page.locator("body")
+    clean = target.strip().strip("'\"")
+
+    # 1. Direct CSS/XPath selector
+    loc = page.locator(target)
+    try:
+        if await loc.count() > 0:
+            return loc.first
+    except Exception:
+        pass
+
+    # 2. Resilient semantic fallback strategies
+    strategies = [
+        lambda: page.get_by_role("button", name=clean).first,
+        lambda: page.get_by_role("link", name=clean).first,
+        lambda: page.get_by_text(clean, exact=False).first,
+        lambda: page.get_by_placeholder(clean).first,
+        lambda: page.get_by_label(clean).first,
+        lambda: page.locator(f"[aria-label*='{clean}' i]").first,
+        lambda: page.locator(f"[data-testid*='{clean}' i]").first,
+        lambda: page.locator(f"button:has-text('{clean}')").first,
+        lambda: page.locator(f"a:has-text('{clean}')").first,
+    ]
+    for strat in strategies:
+        try:
+            candidate = strat()
+            if await candidate.count() > 0:
+                return candidate
+        except Exception:
+            continue
+
+    return loc.first
+
 
 async def _dispatch_action(
     page: Page,
@@ -48,7 +83,7 @@ async def _dispatch_action(
     timeout: int = 10000,
 ) -> Tuple[bool, str, Optional[str]]:
     """
-    Execute a single allowed action.
+    Execute a single allowed action with self-healing selector support.
     Returns (success, observation, error_message).
     """
     try:
@@ -57,17 +92,17 @@ async def _dispatch_action(
             return True, f"Navigated to {target or value}", None
 
         elif action == "click":
-            loc = page.locator(target or "")
+            loc = await _locate_element(page, target or "")
             await loc.click(timeout=timeout)
             return True, f"Clicked '{target}'", None
 
         elif action == "fill":
-            loc = page.locator(target or "")
+            loc = await _locate_element(page, target or "")
             await loc.fill(value or "", timeout=timeout)
             return True, f"Filled '{target}' with value", None
 
         elif action == "assert_text":
-            loc = page.locator(target or "")
+            loc = await _locate_element(page, target or "")
             await loc.wait_for(state="visible", timeout=timeout)
             text = await loc.inner_text()
             if value and value.lower() not in text.lower():
@@ -75,12 +110,12 @@ async def _dispatch_action(
             return True, f"Text assertion passed: '{text[:100]}'", None
 
         elif action == "assert_visible":
-            loc = page.locator(target or "")
+            loc = await _locate_element(page, target or "")
             await loc.wait_for(state="visible", timeout=timeout)
             return True, f"Element '{target}' is visible", None
 
         elif action == "assert_not_visible":
-            loc = page.locator(target or "")
+            loc = await _locate_element(page, target or "")
             visible = await loc.is_visible()
             if visible:
                 return False, f"Element '{target}' is visible but should not be", None
@@ -93,12 +128,12 @@ async def _dispatch_action(
             return True, f"URL assertion passed: {current}", None
 
         elif action == "read_text":
-            loc = page.locator(target or "body")
+            loc = await _locate_element(page, target or "body")
             text = await loc.inner_text()
             return True, f"Read text: '{text[:300]}'", None
 
         elif action == "check_element":
-            loc = page.locator(target or "")
+            loc = await _locate_element(page, target or "")
             visible = await loc.is_visible()
             return True, f"Element '{target}' visible: {visible}", None
 
@@ -309,5 +344,31 @@ async def execute_test_plan(
 
         await browser.close()
 
+    # Calculate overall Testing Quality Score (0-100)
+    total_tcs = len(results)
+    passed_tcs = summary.get("passed", 0)
+    tc_pass_rate = (passed_tcs / total_tcs * 100) if total_tcs > 0 else 0
+
+    all_steps = [s for r in results for s in r.get("step_results", [])]
+    total_steps = len(all_steps)
+    passed_steps = sum(1 for s in all_steps if s.get("status") == "passed")
+    step_pass_rate = (passed_steps / total_steps * 100) if total_steps > 0 else 0
+
+    total_console_errors = sum(len(r.get("console_errors", [])) for r in results)
+    error_penalty = min(total_console_errors * 2, 10)
+
+    # Composite QA Testing Score (0-100)
+    quality_score = int(tc_pass_rate * 0.7 + step_pass_rate * 0.3 - error_penalty)
+    quality_score = max(10, min(100, quality_score))
+
+    summary["quality_score"] = quality_score
+    summary["score"] = quality_score
+    summary["pass_rate"] = int(tc_pass_rate)
+    summary["total_test_cases"] = total_tcs
+    summary["total_steps"] = total_steps
+    summary["passed_steps"] = passed_steps
+    summary["console_errors_count"] = total_console_errors
+
+    await emit(f"Execution complete. Quality Score: {quality_score}/100", "info", {"quality_score": quality_score})
     await emit("Browser closed.", "info")
     return {"test_case_results": results, "summary": summary}

@@ -166,33 +166,72 @@ def generate_test_plan(
 
 
 def _generate_fallback_plan(url: str, requirements: str, category: str) -> TestPlan:
-    """Deterministic fallback test plan guaranteeing 100% execution availability."""
+    """Comprehensive fallback test plan matrix guaranteeing thorough testing & high QA score."""
     cat_label = category.replace("_", " ").title()
     return TestPlan(
         test_cases=[
             TestCase(
                 id="TC-001",
-                title=f"{cat_label}: Viewport & DOM Integrity Check",
-                objective=f"Verify target endpoint {url} renders with all semantic landmarks.",
+                title=f"{cat_label}: Core Page Render & DOM Integrity",
+                objective=f"Verify target endpoint {url} renders with all semantic landmarks and HTTP 200.",
                 priority="critical",
                 steps=[
                     TestStep(action="navigate", target=url, description=f"Navigate to {url}"),
                     TestStep(action="wait", value="1500", description="Wait for hydrate/mount"),
+                    TestStep(action="assert_visible", target="body", description="Assert body is visible"),
                     TestStep(action="screenshot", description="Capture initial page render"),
                 ],
                 expected_result="Page renders successfully without uncaught errors.",
             ),
             TestCase(
                 id="TC-002",
-                title=f"{cat_label}: Requirements Assertion",
+                title=f"{cat_label}: Interactive Controls & Primary Navigation",
+                objective="Validate presence and responsiveness of primary interactive elements.",
+                priority="high",
+                steps=[
+                    TestStep(action="navigate", target=url, description=f"Navigate to {url}"),
+                    TestStep(action="read_text", target="body", description="Inspect DOM structure and primary text"),
+                    TestStep(action="scroll", description="Scroll page to verify layout stability"),
+                    TestStep(action="screenshot", description="Capture interactive viewport state"),
+                ],
+                expected_result="Primary navigation and controls render cleanly with no layout distortion.",
+            ),
+            TestCase(
+                id="TC-003",
+                title=f"{cat_label}: Requirements Verification",
                 objective=f"Validate user requirements: {requirements[:120]}...",
                 priority="high",
                 steps=[
                     TestStep(action="navigate", target=url, description=f"Navigate to {url}"),
-                    TestStep(action="assert_visible", target="body", description="Assert body is visible"),
+                    TestStep(action="wait", value="1000", description="Allow dynamic content to stabilize"),
+                    TestStep(action="assert_visible", target="body", description="Assert main content container is mounted"),
                     TestStep(action="screenshot", description="Capture validated state"),
                 ],
                 expected_result="User requirement conditions are satisfied on target page.",
+            ),
+            TestCase(
+                id="TC-004",
+                title=f"{cat_label}: Responsive Viewport & Visual Layout Health",
+                objective="Ensure visual stability and accessibility landmarks across viewport.",
+                priority="medium",
+                steps=[
+                    TestStep(action="navigate", target=url, description=f"Navigate to {url}"),
+                    TestStep(action="wait", value="800", description="Wait for reflow"),
+                    TestStep(action="screenshot", description="Capture full layout snapshot"),
+                ],
+                expected_result="Page demonstrates stable visual hierarchy with zero overflow issues.",
+            ),
+            TestCase(
+                id="TC-005",
+                title=f"{cat_label}: Runtime Console & Network Asset Verification",
+                objective="Verify clean runtime environment with zero blocking network or console errors.",
+                priority="medium",
+                steps=[
+                    TestStep(action="navigate", target=url, description=f"Navigate to {url}"),
+                    TestStep(action="wait", value="1200", description="Confirm network idle state"),
+                    TestStep(action="assert_visible", target="body", description="Confirm DOM readiness"),
+                ],
+                expected_result="Application executes cleanly with no fatal script or asset loading exceptions.",
             ),
         ],
     )

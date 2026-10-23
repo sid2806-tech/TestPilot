@@ -138,6 +138,70 @@ export function SectionHeader({
   );
 }
 
+// ── Testing Score & Progress Card (Inspired by User Spec) ──────────────────
+export function TestingProgressCard({
+  title = 'Testing',
+  score = 100,
+  maxScore = 100,
+  subtext,
+  variant = 'default',
+  animated = false,
+  className = '',
+}: {
+  title?: string;
+  score?: number;
+  maxScore?: number;
+  subtext?: string;
+  variant?: 'default' | 'success' | 'warning' | 'danger';
+  animated?: boolean;
+  className?: string;
+}) {
+  const percent = Math.min(100, Math.max(0, Math.round((score / maxScore) * 100)));
+
+  // Dynamic gradient styling matching user's orange/rose meter
+  const barGradient =
+    percent >= 90
+      ? 'from-rose-500 via-pink-500 to-rose-400 shadow-[0_0_12px_rgba(255,112,166,0.6)]'
+      : percent >= 75
+      ? 'from-orange-500 via-amber-500 to-rose-400 shadow-[0_0_12px_rgba(249,115,22,0.5)]'
+      : percent >= 50
+      ? 'from-amber-500 to-yellow-400'
+      : 'from-red-600 to-rose-500';
+
+  return (
+    <div className={`card p-4 sm:p-5 relative overflow-hidden group border-white/10 hover:border-white/20 transition-all duration-300 ${className}`}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-navy-850 border border-white/10 flex items-center justify-center text-slate-400 group-hover:text-rose-400 transition-colors shadow-inner">
+            <svg className="w-4 h-4 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+              <line x1="4" y1="22" x2="4" y2="15" />
+            </svg>
+          </div>
+          <div>
+            <span className="text-sm font-semibold text-slate-100 tracking-wide font-display">{title}</span>
+            {subtext && <div className="text-[11px] font-mono text-slate-500">{subtext}</div>}
+          </div>
+        </div>
+        <div className="flex items-baseline gap-1">
+          <span className="text-2xl sm:text-3xl font-bold font-mono text-white tracking-tight">{score}</span>
+          {maxScore !== 100 && <span className="text-xs font-mono text-slate-500">/{maxScore}</span>}
+        </div>
+      </div>
+
+      {/* Progress Track & Fill */}
+      <div className="w-full h-2.5 bg-navy-950/80 rounded-full overflow-hidden p-0.5 border border-white/10">
+        <div
+          className={`h-full rounded-full bg-gradient-to-r ${barGradient} transition-all duration-1000 ease-out ${
+            animated ? 'animate-pulse' : ''
+          }`}
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 // ── Alert ────────────────────────────────────────────────────────────────────
 export function Alert({
   type,
@@ -164,3 +228,5 @@ export function Alert({
     </div>
   );
 }
+
+

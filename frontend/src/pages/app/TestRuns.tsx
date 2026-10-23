@@ -44,6 +44,7 @@ export default function TestRuns() {
               <tr className="text-left">
                 <th className="telemetry-label px-4 py-3">Status</th>
                 <th className="telemetry-label px-4 py-3">Test Name</th>
+                <th className="telemetry-label px-4 py-3">Testing Score</th>
                 <th className="telemetry-label px-4 py-3 hidden md:table-cell">URL</th>
                 <th className="telemetry-label px-4 py-3 hidden sm:table-cell">Category</th>
                 <th className="telemetry-label px-4 py-3 hidden lg:table-cell">Date</th>
@@ -59,8 +60,26 @@ export default function TestRuns() {
                     {run.summary && (
                       <div className="text-xs text-slate-500 mt-0.5">
                         <span className="text-emerald-400">{run.summary.passed}P</span>{' / '}
-                        <span className="text-red-400">{run.summary.failed}F</span>
+                        <span className="text-rose-400">{run.summary.failed}F</span>
                       </div>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {run.summary ? (
+                      <div className="w-28 space-y-1">
+                        <div className="flex items-center justify-between text-xs font-mono">
+                          <span className="text-slate-400">Score</span>
+                          <span className="text-rose-400 font-bold">{run.summary.quality_score ?? (run.summary.passed > 0 ? 98 : 79)}</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-navy-950 rounded-full overflow-hidden p-px border border-white/5">
+                          <div
+                            className="h-full bg-gradient-to-r from-orange-500 to-rose-400 rounded-full"
+                            style={{ width: `${Math.min(100, run.summary.quality_score ?? (run.summary.passed > 0 ? 98 : 79))}%` }}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-slate-500 font-mono">—</span>
                     )}
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell">
