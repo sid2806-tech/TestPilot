@@ -60,7 +60,7 @@ COPY backend/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Install Playwright browser
-RUN playwright install --with-deps chromium
+RUN playwright install chromium
 
 # Copy backend application
 COPY backend/ ./
