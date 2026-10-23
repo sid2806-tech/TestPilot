@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DemoApp — TestPilot Demo Site</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .demo-badge {
+      position: fixed; top: 12px; right: 12px;
+      background: #fbbf24; color: #000; font-size: 11px;
+      font-weight: 600; padding: 4px 10px; border-radius: 20px;
+    }
+    .card {
+      background: white; border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+      padding: 2.5rem; width: 100%; max-width: 440px;
+    }
+    h1 { font-size: 1.5rem; font-weight: 700; color: #0f172a; margin-bottom: 0.25rem; }
+    .subtitle { font-size: 0.875rem; color: #64748b; margin-bottom: 2rem; }
+    .tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; border-bottom: 2px solid #e2e8f0; }
+    .tab {
+      padding: 8px 16px; font-size: 0.875rem; cursor: pointer;
+      border-bottom: 2px solid transparent; margin-bottom: -2px;
+      color: #64748b; background: none; border-top: none; border-left: none; border-right: none;
+    }
+    .tab.active { color: #3b82f6; border-bottom-color: #3b82f6; font-weight: 600; }
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; font-size: 0.8rem; font-weight: 500; color: #374151; margin-bottom: 6px; }
+    input {
+      width: 100%; padding: 10px 12px; border: 1.5px solid #d1d5db;
+      border-radius: 8px; font-size: 0.875rem; transition: border-color 0.15s;
+      outline: none;
+    }
+    input:focus { border-color: #3b82f6; }
+    input.error { border-color: #ef4444; }
+    .btn {
+      width: 100%; padding: 11px; border-radius: 8px; border: none;
+      font-size: 0.9rem; font-weight: 600; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-primary { background: #3b82f6; color: white; }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-primary:disabled { background: #93c5fd; cursor: not-allowed; }
+    .alert {
+      padding: 10px 14px; border-radius: 8px; font-size: 0.875rem;
+      margin-bottom: 1rem; display: none;
+    }
+    .alert.visible { display: block; }
+    .alert-error { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+    .alert-success { background: #d1fae5; color: #059669; border: 1px solid #6ee7b7; }
+    .alert-info { background: #dbeafe; color: #2563eb; border: 1px solid #93c5fd; }
+    .field-error { font-size: 0.75rem; color: #ef4444; margin-top: 4px; display: none; }
+    .field-error.visible { display: block; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .link { color: #3b82f6; cursor: pointer; text-decoration: underline; font-size: 0.875rem; }
+    .footer-links { display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; font-size: 0.8rem; color: #64748b; }
+    .user-info { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+    .user-info strong { color: #166534; }
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="demo-badge">⚠ DEMO SITE</div>
+
+  <div class="card">
+    <h1>DemoApp</h1>
+    <p class="subtitle">A demo application for TestPilot AI end-to-end testing</p>
+
+    <div id="loginPage" class="page active">
+      <div class="tabs">
+        <button class="tab active" onclick="showTab('login')">Sign In</button>
+        <button class="tab" onclick="showTab('register')">Register</button>
+        <button class="tab" onclick="showTab('reset')">Reset Password</button>
+      </div>
+
+      <!-- Login form -->
+      <div id="loginForm">
+        <div id="loginAlert" class="alert"></div>
+        <div class="form-group">
+          <label for="loginEmail">Email *</label>
+          <input type="email" id="loginEmail" placeholder="demo@testpilot.ai" aria-label="Email" />
+          <div class="field-error" id="loginEmailError">Please enter a valid email.</div>
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Password *</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" aria-label="Password" />
+          <div class="field-error" id="loginPasswordError">Password is required.</div>
+        </div>
+        <button class="btn btn-primary" id="loginBtn" onclick="handleLogin()" aria-label="Sign In">
+          Sign In
+        </button>
+        <div class="footer-links">
+          <span>Need an account? <span class="link" onclick="showTab('register')">Register</span></span>
+        </div>
+      </div>
+
+      <!-- Register form -->
+      <div id="registerForm" style="display:none">
+        <div id="registerAlert" class="alert"></div>
+        <div class="form-group">
+          <label for="regName">Full Name *</label>
+          <input type="text" id="regName" placeholder="Jane Smith" aria-label="Full Name" />
+          <div class="field-error" id="regNameError">Name is required.</div>
+        </div>
+        <div class="form-group">
+          <label for="regEmail">Email *</label>
+          <input type="email" id="regEmail" placeholder="jane@example.com" aria-label="Email" />
+          <div class="field-error" id="regEmailError">Please enter a valid email.</div>
+        </div>
+        <div class="form-group">
+          <label for="regPassword">Password * <small>(min. 8 chars)</small></label>
+          <input type="password" id="regPassword" placeholder="••••••••" aria-label="Password" />
+          <div class="field-error" id="regPasswordError">Password must be at least 8 characters.</div>
+        </div>
+        <button class="btn btn-primary" onclick="handleRegister()" aria-label="Create Account">Create Account</button>
+        <div class="footer-links">
+          <span>Already registered? <span class="link" onclick="showTab('login')">Sign in</span></span>
+        </div>
+      </div>
+
+      <!-- Reset form -->
+      <div id="resetForm" style="display:none">
+        <div id="resetAlert" class="alert"></div>
+        <div class="form-group">
+          <label for="resetEmail">Email address</label>
+          <input type="email" id="resetEmail" placeholder="you@example.com" aria-label="Email" />
+        </div>
+        <button class="btn btn-primary" onclick="handleReset()" aria-label="Send Reset Link">Send Reset Link</button>
+        <div class="footer-links">
+          <span class="link" onclick="showTab('login')">← Back to Sign In</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard (post-login) -->
+    <div id="dashboardPage" class="page">
+      <div id="dashAlert" class="alert alert-success visible" id="dashAlert">Signed in successfully!</div>
+      <div class="user-info">
+        <div>Welcome back, <strong id="userName"></strong></div>
+        <div style="font-size:0.8rem;color:#166534;margin-top:4px">Session active ✓</div>
+      </div>
+      <p style="font-size:0.875rem;color:#374151;margin-bottom:1rem">
+        This is the demo application dashboard. TestPilot can verify this page is accessible after login.
+      </p>
+      <button class="btn btn-primary" onclick="handleLogout()" aria-label="Sign Out">Sign Out</button>
+    </div>
+  </div>
+
+  <script>
+    // Demo accounts — never use real credentials
+    const DEMO_ACCOUNTS = [
+      { email: 'demo@testpilot.ai', password: 'Demo1234!', name: 'Demo User' },
+      { email: 'test@example.com', password: 'Test1234!', name: 'Test User' },
+    ];
+
+    // Bug flag — loaded from server (or localStorage for demo)
+    let bugEnabled = localStorage.getItem('testpilot_demo_bug') !== 'false';
+
+    function showTab(tab) {
+      document.querySelectorAll('.tab').forEach((t, i) => {
+        t.classList.toggle('active', ['login','register','reset'][i] === tab);
+      });
+      document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+      document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+      document.getElementById('resetForm').style.display = tab === 'reset' ? 'block' : 'none';
+      clearAlerts();
+    }
+
+    function clearAlerts() {
+      document.querySelectorAll('.alert').forEach(a => { a.classList.remove('visible', 'alert-error', 'alert-success', 'alert-info'); a.textContent = ''; });
+      document.querySelectorAll('.field-error').forEach(e => e.classList.remove('visible'));
+      document.querySelectorAll('input').forEach(i => i.classList.remove('error'));
+    }
+
+    function showAlert(id, type, msg) {
+      const el = document.getElementById(id);
+      el.className = `alert alert-${type} visible`;
+      el.textContent = msg;
+    }
+
+    function showFieldError(id, inputId) {
+      document.getElementById(id).classList.add('visible');
+      document.getElementById(inputId).classList.add('error');
+    }
+
+    function setLoading(btnId, loading) {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+      btn.disabled = loading;
+      btn.innerHTML = loading ? '<span class="spinner"></span>Loading…' : btn.dataset.label || btn.textContent;
+    }
+
+    async function handleLogin() {
+      clearAlerts();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      let valid = true;
+
+      if (!email || !email.includes('@')) { showFieldError('loginEmailError', 'loginEmail'); valid = false; }
+      if (!password) { showFieldError('loginPasswordError', 'loginPassword'); valid = false; }
+      if (!valid) return;
+
+      setLoading('loginBtn', true);
+      // Simulate network delay
+      await new Promise(r => setTimeout(r, 600));
+
+      // BUG: when bugEnabled, the form submission silently fails
+      if (bugEnabled) {
+        setLoading('loginBtn', false);
+        showAlert('loginAlert', 'error', 'Login failed: server did not respond. Please try again.');
+        return;
+      }
+
+      const account = DEMO_ACCOUNTS.find(a => a.email === email && a.password === password);
+      if (!account) {
+        setLoading('loginBtn', false);
+        showAlert('loginAlert', 'error', 'Invalid email or password. Please check your credentials.');
+        return;
+      }
+
+      setLoading('loginBtn', false);
+      localStorage.setItem('demo_user', JSON.stringify(account));
+      showDashboard(account.name);
+    }
+
+    async function handleRegister() {
+      clearAlerts();
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value;
+      let valid = true;
+
+      if (!name) { showFieldError('regNameError', 'regName'); valid = false; }
+      if (!email || !email.includes('@')) { showFieldError('regEmailError', 'regEmail'); valid = false; }
+      if (password.length < 8) { showFieldError('regPasswordError', 'regPassword'); valid = false; }
+      if (!valid) return;
+
+      await new Promise(r => setTimeout(r, 500));
+      showAlert('registerAlert', 'success', `Account created for ${email}. You can now sign in.`);
+    }
+
+    async function handleReset() {
+      clearAlerts();
+      const email = document.getElementById('resetEmail').value.trim();
+      if (!email) return;
+      await new Promise(r => setTimeout(r, 400));
+      showAlert('resetAlert', 'info', `If ${email} has an account, a reset link has been sent.`);
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('demo_user');
+      document.getElementById('loginPage').classList.add('active');
+      document.getElementById('dashboardPage').classList.remove('active');
+    }
+
+    function showDashboard(name) {
+      document.getElementById('userName').textContent = name;
+      document.getElementById('loginPage').classList.remove('active');
+      document.getElementById('dashboardPage').classList.add('active');
+    }
+
+    // Check if already "logged in"
+    const saved = localStorage.getItem('demo_user');
+    if (saved) { try { showDashboard(JSON.parse(saved).name); } catch {} }
+
+    // Listen for bug toggle from parent (demo API)
+    window.addEventListener('message', (e) => {
+      if (e.data?.type === 'SET_BUG') {
+        bugEnabled = e.data.enabled;
+        localStorage.setItem('testpilot_demo_bug', String(bugEnabled));
+      }
+    });
+
+    // Expose for TestPilot direct control
+    window.setDemoBug = (enabled) => {
+      bugEnabled = enabled;
+      localStorage.setItem('testpilot_demo_bug', String(enabled));
+    };
+  </script>
+</body>
+</html>
