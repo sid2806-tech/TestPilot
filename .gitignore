@@ -6,11 +6,7 @@ __pycache__/
 venv/
 .venv/
 
-# Environment and Secrets
-.env
-.env.*
-*.env
-*.env.*
+# Secrets
 *serviceAccount*.json
 *.pem
 *.key
